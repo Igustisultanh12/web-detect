@@ -37,7 +37,13 @@ class ReportGeneratorService
         $code = $investigation->investigation_code;
         $uuid = (string) Str::uuid();
         $relativeDir = 'private/reports';
-        $reportNumber = "{$code}-REP-" . date('Ymd');
+        $baseNumber = "{$code}-REP-" . date('Ymd');
+        $reportNumber = $baseNumber;
+        $counter = 1;
+        while (Report::where('report_number', $reportNumber)->exists()) {
+            $reportNumber = sprintf("%s-%02d", $baseNumber, $counter);
+            $counter++;
+        }
         $title = "LAPORAN ANALISIS TEKNIS WEBSITE: {$investigation->target_domain}";
 
         if ($format === 'JSON') {
