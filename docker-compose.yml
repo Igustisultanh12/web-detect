@@ -1,0 +1,66 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: webguard-app:latest
+    container_name: webguard_app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      APP_NAME: "WebGuard Investigasi"
+      APP_ENV: production
+      APP_KEY: base64:your-32-character-secret-key-here
+      APP_DEBUG: "false"
+      APP_URL: http://localhost:8080
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: webguard
+      DB_USERNAME: webguard_user
+      DB_PASSWORD: webguard_secret_password
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - app_storage:/var/www/html/storage
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - webguard-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: webguard_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: webguard
+      MYSQL_USER: webguard_user
+      MYSQL_PASSWORD: webguard_secret_password
+      MYSQL_ROOT_PASSWORD: root_secret_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - webguard-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: webguard_redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - webguard-network
+
+networks:
+  webguard-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
+  app_storage:
