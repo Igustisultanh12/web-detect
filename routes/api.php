@@ -82,5 +82,39 @@ Route::prefix('v1')->group(function () {
         Route::get('/settings', [SettingController::class, 'index']);
         Route::post('/settings', [SettingController::class, 'update']);
         Route::apiResource('providers', ApiProviderController::class);
+
+        // Takedown & Incident Response Management
+        Route::prefix('takedown')->group(function () {
+            Route::get('/dashboard', [\App\Http\Controllers\Api\Takedown\TakedownDashboardController::class, 'index']);
+
+            // Cases
+            Route::get('/cases', [\App\Http\Controllers\Api\Takedown\TakedownCaseController::class, 'index']);
+            Route::post('/cases', [\App\Http\Controllers\Api\Takedown\TakedownCaseController::class, 'store']);
+            Route::get('/cases/{id}', [\App\Http\Controllers\Api\Takedown\TakedownCaseController::class, 'show']);
+            Route::put('/cases/{id}', [\App\Http\Controllers\Api\Takedown\TakedownCaseController::class, 'update']);
+            Route::post('/cases/{id}/status', [\App\Http\Controllers\Api\Takedown\TakedownCaseController::class, 'updateStatus']);
+            Route::post('/cases/{id}/follow-ups', [\App\Http\Controllers\Api\Takedown\TakedownCaseController::class, 'addFollowUp']);
+            Route::get('/cases/{id}/report', [\App\Http\Controllers\Api\Takedown\TakedownCaseController::class, 'generateReport']);
+            Route::get('/cases/{id}/download-package', [\App\Http\Controllers\Api\Takedown\TakedownCaseController::class, 'downloadEvidencePackage']);
+
+            // Provider Directory
+            Route::get('/providers', [\App\Http\Controllers\Api\Takedown\TakedownProviderController::class, 'index']);
+            Route::post('/providers', [\App\Http\Controllers\Api\Takedown\TakedownProviderController::class, 'store']);
+            Route::get('/providers/{id}', [\App\Http\Controllers\Api\Takedown\TakedownProviderController::class, 'show']);
+            Route::put('/providers/{id}', [\App\Http\Controllers\Api\Takedown\TakedownProviderController::class, 'update']);
+        });
+
+        // Defensive Technical Actions (Internal Only)
+        Route::prefix('defensive-actions')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\Takedown\DefensiveActionController::class, 'index']);
+            Route::post('/', [\App\Http\Controllers\Api\Takedown\DefensiveActionController::class, 'store']);
+            Route::get('/{id}', [\App\Http\Controllers\Api\Takedown\DefensiveActionController::class, 'show']);
+            Route::post('/{id}/review', [\App\Http\Controllers\Api\Takedown\DefensiveActionController::class, 'review']);
+            Route::post('/{id}/approve', [\App\Http\Controllers\Api\Takedown\DefensiveActionController::class, 'approve']);
+            Route::post('/{id}/reject', [\App\Http\Controllers\Api\Takedown\DefensiveActionController::class, 'reject']);
+            Route::post('/{id}/deploy', [\App\Http\Controllers\Api\Takedown\DefensiveActionController::class, 'markDeployed']);
+            Route::post('/{id}/checklists/{checklistId}/toggle', [\App\Http\Controllers\Api\Takedown\DefensiveActionController::class, 'toggleChecklistItem']);
+            Route::get('/{id}/export', [\App\Http\Controllers\Api\Takedown\DefensiveActionController::class, 'exportRule']);
+        });
     });
 });

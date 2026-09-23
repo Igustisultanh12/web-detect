@@ -377,3 +377,127 @@ export interface LoginAttempt {
   failure_reason?: string;
   created_at: string;
 }
+
+export interface TakedownProvider {
+  id: number;
+  uuid: string;
+  name: string;
+  type: string;
+  website?: string;
+  abuse_email?: string;
+  abuse_url?: string;
+  api_endpoint?: string;
+  report_types?: string[];
+  requirements?: string;
+  sla_hours: number;
+  integration_status: 'MANUAL' | 'API_AVAILABLE' | 'API_ACTIVE';
+  notes?: string;
+  is_active: boolean;
+  takedown_cases_count?: number;
+  created_at?: string;
+}
+
+export interface TakedownFollowUp {
+  id: number;
+  uuid: string;
+  takedown_case_id: number;
+  user_id: number;
+  officer?: User;
+  channel: 'EMAIL' | 'PORTAL' | 'PHONE' | 'WHATSAPP' | 'API';
+  direction: 'OUTBOUND' | 'INBOUND';
+  ticket_number?: string;
+  subject: string;
+  message: string;
+  provider_status?: string;
+  attachment_path?: string;
+  attachment_sha256?: string;
+  follow_up_date?: string;
+  next_action?: string;
+  created_at: string;
+}
+
+export interface TakedownCase {
+  id: number;
+  uuid: string;
+  case_number: string;
+  investigation_id?: number;
+  investigation?: Investigation;
+  provider_id?: number;
+  provider?: TakedownProvider;
+  target_domain: string;
+  target_url: string;
+  target_ip?: string;
+  category: string;
+  allegation_summary: string;
+  legal_or_policy_basis?: string;
+  evidence_summary?: string;
+  selected_evidence_ids?: number[];
+  provider_type?: string;
+  provider_name?: string;
+  provider_contact?: string;
+  external_reference_number?: string;
+  submitted_at?: string;
+  acknowledged_at?: string;
+  last_follow_up_at?: string;
+  next_follow_up_at?: string;
+  resolved_at?: string;
+  status: 'DRAFT' | 'READY_TO_SUBMIT' | 'SUBMITTED' | 'ACKNOWLEDGED' | 'UNDER_REVIEW' | 'ADDITIONAL_INFORMATION_REQUESTED' | 'ACTION_TAKEN' | 'REJECTED' | 'ESCALATED' | 'CLOSED' | 'NO_RESPONSE';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  assigned_to?: number;
+  assigned_officer?: User;
+  created_by: number;
+  creator?: User;
+  follow_ups?: TakedownFollowUp[];
+  follow_ups_count?: number;
+  defensive_actions?: DefensiveAction[];
+  defensive_actions_count?: number;
+  incident_checklists?: IncidentChecklist[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IncidentChecklist {
+  id: number;
+  takedown_case_id?: number;
+  defensive_action_id?: number;
+  step_number: number;
+  phase: 'IDENTIFICATION' | 'CONTAINMENT' | 'ERADICATION' | 'RECOVERY' | 'LESSONS_LEARNED';
+  task_name: string;
+  instructions?: string;
+  is_completed: boolean;
+  completed_by?: number;
+  completer?: User;
+  completed_at?: string;
+}
+
+export interface DefensiveAction {
+  id: number;
+  uuid: string;
+  action_code: string;
+  investigation_id?: number;
+  investigation?: Investigation;
+  takedown_case_id?: number;
+  takedown_case?: TakedownCase;
+  rule_type: 'INTERNAL_BLOCKLIST' | 'IOC_LIST' | 'FIREWALL_RULE' | 'WAF_RULE' | 'DNS_SINKHOLE' | 'EMAIL_FILTER' | 'PROXY_BLOCK' | 'SIEM_RULE' | 'INCIDENT_CHECKLIST';
+  target_type: 'DOMAIN' | 'IP' | 'URL' | 'SUBNET' | 'HASH';
+  target_value: string;
+  title: string;
+  description?: string;
+  scope: string;
+  rule_payload?: string;
+  status: 'DRAFT' | 'PENDING_REVIEW' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'DEPLOYED_INTERNALLY' | 'REVOKED';
+  recommended_by: number;
+  recommender?: User;
+  reviewed_by?: number;
+  reviewer?: User;
+  approved_by?: number;
+  approver?: User;
+  rejection_reason?: string;
+  approved_at?: string;
+  deployed_at?: string;
+  verified_at?: string;
+  checklists?: IncidentChecklist[];
+  checklists_count?: number;
+  created_at: string;
+}
+

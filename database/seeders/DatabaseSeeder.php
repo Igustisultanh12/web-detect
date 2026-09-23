@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             UnitSeeder::class,
             PositionSeeder::class,
             RolePermissionSeeder::class,
+            TakedownProviderSeeder::class,
         ]);
 
         $kolonel = Rank::where('code', 'KOL')->first();

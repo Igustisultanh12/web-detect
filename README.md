@@ -46,6 +46,31 @@
 * **Autentikasi Multi-Faktor (2FA)**: Standar TOTP (Google Authenticator / Aegis) dengan 10 emergency recovery codes.
 * **Audit Trail**: Pencatatan riwayat setiap aksi pengguna, login, unduh dokumen, dan perubahan data.
 
+### C. Modul Takedown, Incident Response & Aksi Defensif
+* **Penanganan Terstruktur & Siklus Kasus**: Penomoran resmi `TKD-YYYY-XXXXXX`, klasifikasi dugaan (Phishing, Judi Online, Penipuan Finansial, Hoax/Disinformasi, Malware C2, Impersonation), dan pelacakan status bertahap (*Draft*, *Ready to Submit*, *Submitted*, *Acknowledged*, *Under Review*, *Action Taken*, *Rejected*, *Escalated*, *Closed*).
+* **Direktori Otoritas & Penyedia Layanan**: Integrasi katalog kontak abuse, formulir web, dan SLA jam respons dari 9+ entitas regulasi dan industri:
+  * **Regulator & Otoritas Nasional**: Ditjen Aptika Kominfo (Aduan Konten), BSSN CSIRT, Bareskrim Polri Dittipidsiber.
+  * **Registrar & Registry**: PANDI (.id Registry), Namecheap, GoDaddy.
+  * **Hosting, Cloud & CDN**: DigitalOcean, Cloudflare Trust & Safety, Google Safe Browsing, Telegram Abuse.
+* **Evidence Package Integrity (ZIP Forensik)**: Pengemasan bukti otomatis berintegritas tinggi yang memuat:
+  * Berkas laporan resmi PDF dengan disclaimer netral kedinasan.
+  * Folder bukti mentah digital (`evidence/`) yang diekstraksi dari repositori forensik.
+  * `manifest.json` terstruktur mencatat metadata, ukuran berkas, waktu perolehan, dan identitas penyidik.
+  * `SHA256SUMS.txt` untuk verifikasi integritas kriptografis cepat berstandar forensik digital.
+* **Pelacakan SLA & Peringatan Overdue**: Perhitungan otomatis jatuh tempo respons berdasarkan SLA provider terdaftar (`next_follow_up_at`), penanda visual kasus terlambat (*Overdue Alert*), dan pencatatan riwayat tiket korespondensi (*Follow-up Timeline*).
+* **Aksi Defensif Internal (Strictly Defensive Safeguard)**:
+  * Sistem mutlak melarang tindakan ofensif, flooding, exploit, atau penyerangan balasan ke target pihak ketiga.
+  * Pembuatan otomatis aturan konfigurasi perimeter internal:
+    * **Host & Perimeter Firewall**: Rule `iptables` dan `ufw` untuk memblokir koneksi egress/ingress ke IP target.
+    * **Web Application Firewall (WAF)**: Rule `ModSecurity v3` (SecRule), map block `Nginx`, dan custom expression `Cloudflare WAF`.
+    * **DNS Sinkhole**: Zona `BIND 9 RPZ` (Response Policy Zone), format `Pi-hole` / `dnsmasq`, dan `Unbound local-zone`.
+    * **SIEM Detection**: Rule `Sigma YAML` untuk mendeteksi kueri DNS dan koneksi outbound intranet ke target berbahaya.
+  * **Multi-Tier Approval Governance**: Alur persetujuan bertingkat (Penyidik merekomendasikan -> Admin meninjau -> Super Admin menyetujui -> Tim SecOps menerapkan).
+* **SOP Respons Insiden 8 Langkah**: Checklist interaktif terstandarisasi mencakup fase *Identification*, *Containment*, *Eradication*, *Recovery*, dan *Lessons Learned*.
+* **Standar Notifikasi Institusional**:
+  * **WhatsApp (Format Sisinden Detasemen Intelijen Cyber)**: Header darurat resmi, klasifikasi operasional, rincian kasus tanpa membocorkan kredensial, jatuh tempo SLA, dan disclaimer enkripsi.
+  * **Email (Format Sisfoperskc)**: Tata letak dinas elegan (banner gelap `#0f172a`, aksen biru `#2563eb`, salutation kedinasan *Yth. [Pangkat] [Nama]*, kartu rincian kasus, tombol aksi langsung, dan klausul kerahasiaan dokumen resmi).
+
 ---
 
 ## 3. Arsitektur Teknologi
@@ -274,6 +299,8 @@ php artisan test
 * **SsrfProtectionTest**: Verifikasi blokade IP loopback, jaringan privat RFC 1918, endpoint AWS/GCP cloud metadata (`169.254.169.254`), skema URL ilegal, dan mitigasi representasi IP heksadesimal/desimal.
 * **PersonnelDocumentSecurityTest**: Verifikasi isolasi disk privat untuk dokumen KTP/KTA, otorisasi RBAC (403 Forbidden bagi non-otoritas), dan validasi integritas hash SHA-256.
 * **InvestigationWorkflowTest**: Verifikasi format otomatis kode investigasi (`WG-YYYY-XXXXXX`), antrean queue pasif, dan hashing kriptografis bukti digital forensik.
+* **TakedownCaseWorkflowTest**: Verifikasi siklus kasus takedown (`TKD-YYYY-XXXXXX`), penghitungan SLA dan deadline over-due, pembuatan evidence package (ZIP + SHA-256 manifest), pencatatan korespondensi follow-up tiket, dan penulisan notifikasi Sisinden WhatsApp & Sisfoperskc HTML email.
+* **DefensiveActionApprovalTest**: Verifikasi alur persetujuan bertingkat aksi defensif (Review Admin & Approval Super Admin), kepatuhan SOP 8 langkah respons insiden, pembuatan payload aturan (iptables, UFW, ModSecurity, Cloudflare WAF, BIND RPZ, Sigma YAML), dan penegakan batas perimeter non-ofensif.
 
 ---
 

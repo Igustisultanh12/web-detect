@@ -67,6 +67,42 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, title: 'Laporan Resmi' },
   },
   {
+    path: '/takedown/dashboard',
+    name: 'takedown.dashboard',
+    component: () => import('../pages/Takedown/Dashboard.vue'),
+    meta: { requiresAuth: true, title: 'Dashboard Takedown & Insiden' },
+  },
+  {
+    path: '/takedown/cases',
+    name: 'takedown.cases.index',
+    component: () => import('../pages/Takedown/Cases/Index.vue'),
+    meta: { requiresAuth: true, title: 'Daftar Kasus Takedown' },
+  },
+  {
+    path: '/takedown/cases/create',
+    name: 'takedown.cases.create',
+    component: () => import('../pages/Takedown/Cases/Create.vue'),
+    meta: { requiresAuth: true, title: 'Buat Kasus Takedown' },
+  },
+  {
+    path: '/takedown/cases/:id',
+    name: 'takedown.cases.show',
+    component: () => import('../pages/Takedown/Cases/Show.vue'),
+    meta: { requiresAuth: true, title: 'Rincian Kasus Takedown' },
+  },
+  {
+    path: '/takedown/providers',
+    name: 'takedown.providers.index',
+    component: () => import('../pages/Takedown/Providers/Index.vue'),
+    meta: { requiresAuth: true, title: 'Direktori Provider & Otoritas' },
+  },
+  {
+    path: '/takedown/defensive-actions',
+    name: 'takedown.defensive.index',
+    component: () => import('../pages/Takedown/Defensive/Index.vue'),
+    meta: { requiresAuth: true, title: 'Aksi Defensif & Mitigasi Internal' },
+  },
+  {
     path: '/security',
     name: 'security.dashboard',
     component: () => import('../pages/Security/Dashboard.vue'),

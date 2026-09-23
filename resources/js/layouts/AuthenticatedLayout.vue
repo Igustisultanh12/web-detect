@@ -87,6 +87,51 @@
             </router-link>
           </div>
 
+          <!-- Group: TAKEDOWN & INCIDENT RESPONSE -->
+          <div class="space-y-1 pt-3 border-t border-slate-100/60 mt-3">
+            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest px-5 pb-1">Takedown & Insiden</p>
+            <router-link
+              to="/takedown/dashboard"
+              :class="$route.path === '/takedown/dashboard' ? 'bg-[#2563EB]/5 text-[#2563EB] font-bold shadow-sm shadow-blue-500/[0.02]' : 'text-[#64748B] hover:text-slate-800 font-medium'"
+              class="group flex items-center gap-4 px-5 py-3 rounded-2xl text-[14px] transition duration-150"
+            >
+              <svg class="w-5 h-5 opacity-80 group-hover:opacity-100" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Dashboard Takedown
+            </router-link>
+            <router-link
+              to="/takedown/cases"
+              :class="$route.path.startsWith('/takedown/cases') ? 'bg-[#2563EB]/5 text-[#2563EB] font-bold shadow-sm shadow-blue-500/[0.02]' : 'text-[#64748B] hover:text-slate-800 font-medium'"
+              class="group flex items-center gap-4 px-5 py-3 rounded-2xl text-[14px] transition duration-150"
+            >
+              <svg class="w-5 h-5 opacity-80 group-hover:opacity-100" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              Kasus Takedown
+            </router-link>
+            <router-link
+              to="/takedown/providers"
+              :class="$route.path.startsWith('/takedown/providers') ? 'bg-[#2563EB]/5 text-[#2563EB] font-bold shadow-sm shadow-blue-500/[0.02]' : 'text-[#64748B] hover:text-slate-800 font-medium'"
+              class="group flex items-center gap-4 px-5 py-3 rounded-2xl text-[14px] transition duration-150"
+            >
+              <svg class="w-5 h-5 opacity-80 group-hover:opacity-100" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              Direktori Provider
+            </router-link>
+            <router-link
+              to="/takedown/defensive-actions"
+              :class="$route.path.startsWith('/takedown/defensive-actions') ? 'bg-[#2563EB]/5 text-[#2563EB] font-bold shadow-sm shadow-blue-500/[0.02]' : 'text-[#64748B] hover:text-slate-800 font-medium'"
+              class="group flex items-center gap-4 px-5 py-3 rounded-2xl text-[14px] transition duration-150"
+            >
+              <svg class="w-5 h-5 opacity-80 group-hover:opacity-100" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              Aksi Defensif & IOC
+            </router-link>
+          </div>
+
           <!-- Group 4: MANAJEMEN PERSONEL (Like Sisfopers KC) -->
           <div v-if="authStore.isAdmin" class="space-y-1 pt-3 border-t border-slate-100/60 mt-3">
             <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest px-5 pb-1">Manajemen Personel</p>

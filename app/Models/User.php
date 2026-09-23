@@ -114,6 +114,16 @@ class User extends Authenticatable
         return $this->hasMany(Investigation::class);
     }
 
+    public function takedownCases(): HasMany
+    {
+        return $this->hasMany(TakedownCase::class, 'assigned_to');
+    }
+
+    public function defensiveActions(): HasMany
+    {
+        return $this->hasMany(DefensiveAction::class, 'recommended_by');
+    }
+
     public function auditLogs(): HasMany
     {
         return $this->hasMany(AuditLog::class);

@@ -46,6 +46,20 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'security.view', 'label' => 'Melihat Dashboard Keamanan', 'group' => 'security'],
             ['name' => 'settings.manage', 'label' => 'Mengelola Pengaturan Sistem', 'group' => 'system'],
             ['name' => 'api_provider.manage', 'label' => 'Mengelola Kredensial Provider API', 'group' => 'system'],
+
+            // Takedown & Incident Response
+            ['name' => 'takedown.view', 'label' => 'Melihat Kasus Takedown', 'group' => 'takedown'],
+            ['name' => 'takedown.create', 'label' => 'Membuat Kasus Takedown Baru', 'group' => 'takedown'],
+            ['name' => 'takedown.edit', 'label' => 'Mengubah Kasus Takedown', 'group' => 'takedown'],
+            ['name' => 'takedown.submit', 'label' => 'Mengajukan Laporan Takedown ke Provider', 'group' => 'takedown'],
+            ['name' => 'takedown.close', 'label' => 'Menyelesaikan / Menutup Kasus Takedown', 'group' => 'takedown'],
+            ['name' => 'takedown.provider.manage', 'label' => 'Mengelola Direktori Provider', 'group' => 'takedown'],
+
+            // Defensive Technical Actions (Internal Only)
+            ['name' => 'defensive.recommend', 'label' => 'Membuat Rekomendasi Aksi Defensif', 'group' => 'defensive'],
+            ['name' => 'defensive.review', 'label' => 'Me-review Rekomendasi Defensif', 'group' => 'defensive'],
+            ['name' => 'defensive.approve', 'label' => 'Menyetujui (Approve) Aksi Defensif Sensitif', 'group' => 'defensive'],
+            ['name' => 'defensive.deploy', 'label' => 'Menandai Aturan Telah Diterapkan di Internal', 'group' => 'defensive'],
         ];
 
         $createdPermissions = [];
@@ -90,6 +104,8 @@ class RolePermissionSeeder extends Seeder
             'user.view', 'user.create', 'user.edit', 'user.activate', 'user.deactivate',
             'user.document.view', 'user.document.upload', 'user.document.download',
             'audit.view', 'security.view',
+            'takedown.view', 'takedown.create', 'takedown.edit', 'takedown.submit', 'takedown.close', 'takedown.provider.manage',
+            'defensive.recommend', 'defensive.review', 'defensive.deploy',
         ];
         $admin->permissions()->sync(
             Permission::whereIn('name', $adminPermissions)->pluck('id')
@@ -100,6 +116,8 @@ class RolePermissionSeeder extends Seeder
             'investigation.view', 'investigation.create', 'investigation.export',
             'evidence.view', 'evidence.create', 'evidence.export',
             'report.view', 'report.generate', 'report.download',
+            'takedown.view', 'takedown.create', 'takedown.edit', 'takedown.submit',
+            'defensive.recommend',
         ];
         $investigator->permissions()->sync(
             Permission::whereIn('name', $investigatorPermissions)->pluck('id')
@@ -107,7 +125,7 @@ class RolePermissionSeeder extends Seeder
 
         // VIEWER
         $viewerPermissions = [
-            'investigation.view', 'report.view',
+            'investigation.view', 'report.view', 'takedown.view',
         ];
         $viewer->permissions()->sync(
             Permission::whereIn('name', $viewerPermissions)->pluck('id')

@@ -128,6 +128,16 @@ class Investigation extends Model
         return $this->hasMany(Report::class);
     }
 
+    public function takedownCases(): HasMany
+    {
+        return $this->hasMany(TakedownCase::class);
+    }
+
+    public function defensiveActions(): HasMany
+    {
+        return $this->hasMany(DefensiveAction::class);
+    }
+
     public function addTimeline(string $action, string $description, string $eventType = 'INFO', ?array $metadata = null): InvestigationTimeline
     {
         return $this->timeline()->create([
