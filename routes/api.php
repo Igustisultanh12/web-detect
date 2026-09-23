@@ -19,6 +19,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
     Route::get('/settings/public', [SettingController::class, 'publicSettings']);
     Route::get('/health', HealthController::class);
+    Route::get('/evidence/{identifier}', [EvidenceController::class, 'renderRaw']);
 
     // Protected Routes via Sanctum
     Route::middleware('auth:sanctum')->group(function () {

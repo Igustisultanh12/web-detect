@@ -94,4 +94,70 @@ class EvidenceController extends Controller
             'message' => $valid ? 'Integritas barang bukti digital valid dan tidak termodifikasi.' : 'PERINGATAN: Integritas bukti tidak cocok!',
         ]);
     }
+
+    /**
+     * Serve raw evidence / screenshot visual payload for browser iframe previews.
+     */
+    public function renderRaw(Request $request, $identifier)
+    {
+        if ($request->expectsJson() && !$request->has('raw') && !$request->has('view')) {
+            return $this->show($identifier);
+        }
+
+        // 1. Look for Screenshot by sha256 or uuid
+        $screenshot = \App\Models\Screenshot::where('sha256', $identifier)
+            ->orWhere('uuid', $identifier)
+            ->first();
+
+        if ($screenshot) {
+            $storagePath = storage_path('app/' . $screenshot->file_path);
+            if (file_exists($storagePath)) {
+                $mime = str_ends_with($screenshot->file_path, '.svg') ? 'image/svg+xml' : 'image/png';
+                return response()->file($storagePath, ['Content-Type' => $mime]);
+            }
+        }
+
+        // 2. Look for Evidence by sha256, uuid, or evidence_code
+        $evidence = Evidence::where('sha256', $identifier)
+            ->orWhere('uuid', $identifier)
+            ->orWhere('evidence_code', $identifier)
+            ->first();
+
+        if ($evidence) {
+            if ($evidence->type === 'Screenshot') {
+                $parsed = is_array($evidence->parsed_data) ? $evidence->parsed_data : json_decode($evidence->raw_data, true);
+                if (!empty($parsed['file_path'])) {
+                    $storagePath = storage_path('app/' . $parsed['file_path']);
+                    if (file_exists($storagePath)) {
+                        $mime = str_ends_with($parsed['file_path'], '.svg') ? 'image/svg+xml' : 'image/png';
+                        return response()->file($storagePath, ['Content-Type' => $mime]);
+                    }
+                }
+            }
+
+            return response($evidence->raw_data, 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
+        }
+
+        // 3. Fallback placeholder SVG
+        $safeId = htmlspecialchars($identifier, ENT_QUOTES, 'UTF-8');
+        $fallbackSvg = <<<SVG
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800">
+  <rect width="1280" height="800" fill="#0F172A" />
+  <rect x="0" y="0" width="1280" height="42" fill="#1E293B" />
+  <circle cx="24" cy="21" r="6" fill="#EF4444" />
+  <circle cx="44" cy="21" r="6" fill="#F59E0B" />
+  <circle cx="64" cy="21" r="6" fill="#10B981" />
+  <text x="640" y="390" fill="#94A3B8" font-family="sans-serif" font-size="22" font-weight="bold" text-anchor="middle">
+    Bukti Visual Forensik Digital
+  </text>
+  <text x="640" y="430" fill="#64748B" font-family="monospace" font-size="14" text-anchor="middle">
+    Hash SHA-256: {$safeId}
+  </text>
+  <text x="640" y="470" fill="#3B82F6" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle">
+    WebGuard Isolated Browser Capture
+  </text>
+</svg>
+SVG;
+        return response($fallbackSvg, 200, ['Content-Type' => 'image/svg+xml']);
+    }
 }
