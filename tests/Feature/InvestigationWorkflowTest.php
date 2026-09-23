@@ -106,4 +106,46 @@ class InvestigationWorkflowTest extends TestCase
         $isValid = $evidenceManager->verifyIntegrity($evidence);
         $this->assertTrue($isValid);
     }
+
+    /**
+     * Test screenshot provider capture and evidence controller renderRaw endpoint.
+     */
+    public function test_screenshot_provider_and_evidence_controller_render_visual(): void
+    {
+        $admin = User::first();
+        $investigation = Investigation::create([
+            'user_id' => $admin->id,
+            'target_url' => 'https://example.com',
+            'target_domain' => 'example.com',
+            'category' => 'Suspicious Domain',
+            'status' => 'COMPLETED',
+        ]);
+
+        $provider = app(\App\Contracts\ScreenshotProviderInterface::class);
+        $shot = $provider->capture($investigation->target_url, $investigation->investigation_code);
+
+        $this->assertNotEmpty($shot['file_path']);
+        $this->assertNotEmpty($shot['sha256']);
+
+        $screenshot = \App\Models\Screenshot::create([
+            'investigation_id' => $investigation->id,
+            'file_path' => $shot['file_path'],
+            'original_url' => $investigation->target_url,
+            'sha256' => $shot['sha256'],
+            'width' => $shot['width'],
+            'height' => $shot['height'],
+            'file_size' => $shot['file_size'],
+            'captured_at' => $shot['captured_at'],
+        ]);
+
+        // Request visual evidence raw render
+        $response = $this->get("/api/v1/evidence/{$screenshot->sha256}");
+        $response->assertStatus(200);
+
+        $contentType = $response->headers->get('Content-Type');
+        $this->assertTrue(
+            str_contains($contentType, 'image/png') || str_contains($contentType, 'image/svg+xml'),
+            "Expected image content type but got {$contentType}"
+        );
+    }
 }

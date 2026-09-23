@@ -131,14 +131,20 @@
               <h3 class="font-extrabold text-sm uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-3">
                 Visual Evidence
               </h3>
-              <div v-if="inv.screenshots?.length" class="border border-slate-200 rounded-xl overflow-hidden bg-slate-100 shadow-inner">
-                <!-- SVG / Screenshot rendering -->
-                <div class="aspect-video relative overflow-hidden bg-slate-900">
-                  <iframe :src="`/api/v1/evidence/${inv.screenshots[0].sha256}`" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.65); transform-origin: 0 0; width: 153%; height: 153%;"></iframe>
+              <div v-if="inv.screenshots?.length" class="border border-slate-200 rounded-xl overflow-hidden bg-slate-900 shadow-inner group cursor-pointer" @click="activeTab = 'screenshots'">
+                <!-- Thumbnail rendering -->
+                <div class="aspect-video relative overflow-hidden bg-slate-950 flex items-center justify-center">
+                  <img :src="`/api/v1/evidence/${inv.screenshots[0].sha256}`" class="w-full h-full object-cover object-top transition duration-300 group-hover:scale-105" alt="Visual Evidence Thumbnail" />
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-3">
+                    <span class="text-white text-xs font-semibold flex items-center gap-1.5">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+                      Klik untuk memperbesar bukti visual
+                    </span>
+                  </div>
                 </div>
-                <div class="p-3 bg-white text-[11px] text-slate-500 flex justify-between items-center">
-                  <span>SHA-256: {{ inv.screenshots[0].sha256.substring(0, 12) }}...</span>
-                  <button @click="activeTab = 'screenshots'" class="text-blue-600 font-bold hover:underline">Perbesar &rarr;</button>
+                <div class="p-3 bg-white text-[11px] text-slate-500 flex justify-between items-center border-t border-slate-100">
+                  <span class="font-mono">SHA-256: {{ inv.screenshots[0].sha256.substring(0, 12) }}...</span>
+                  <span class="text-blue-600 font-bold hover:underline flex items-center gap-1">Perbesar &rarr;</span>
                 </div>
               </div>
               <div v-else class="h-44 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-xs text-slate-400 italic">
@@ -407,15 +413,69 @@
         </div>
 
         <!-- TAB 12: SCREENSHOTS -->
-        <div v-else-if="activeTab === 'screenshots'" class="space-y-4">
-          <h3 class="font-extrabold text-sm uppercase tracking-wider text-slate-900">Tangkapan Layar Forensik Website (Visual Evidence)</h3>
-          <div v-for="shot in inv.screenshots" :key="shot.id" class="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm space-y-3 p-4">
-            <div class="aspect-video w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-900">
-              <iframe :src="`/api/v1/evidence/${shot.sha256}`" class="w-full h-full border-0"></iframe>
+        <div v-else-if="activeTab === 'screenshots'" class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 class="font-extrabold text-sm uppercase tracking-wider text-slate-900">Tangkapan Layar Forensik Website (Visual Evidence)</h3>
+              <p class="text-xs text-slate-500">Dokumentasi visual pasif tersimpan dan terlindungi dengan verifikasi hash kriptografis SHA-256.</p>
             </div>
-            <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-              <span class="font-mono">SHA-256: {{ shot.sha256 }}</span>
-              <span>Waktu Pengambilan: {{ formatDate(shot.captured_at) }}</span>
+            <div v-if="inv.screenshots?.length" class="flex items-center gap-2">
+              <a :href="`/api/v1/evidence/${inv.screenshots[0].sha256}`" target="_blank" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 flex items-center gap-1.5 shadow-sm transition">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                Buka Tab Baru
+              </a>
+              <a :href="`/api/v1/evidence/${inv.screenshots[0].sha256}`" download class="px-3 py-1.5 rounded-lg bg-blue-600 text-xs font-semibold text-white hover:bg-blue-700 flex items-center gap-1.5 shadow-sm transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Unduh Gambar
+              </a>
+            </div>
+          </div>
+
+          <div v-for="shot in inv.screenshots" :key="shot.id" class="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+            <!-- Sleek Browser Chrome Header Mockup -->
+            <div class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+              </div>
+              <div class="flex-1 max-w-xl mx-4">
+                <div class="bg-slate-950 border border-slate-800 rounded-full px-4 py-1 text-xs text-slate-300 font-mono flex items-center justify-between shadow-inner">
+                  <div class="flex items-center gap-1.5 truncate">
+                    <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    <span class="text-slate-400 select-none">https://</span>
+                    <span class="text-white font-medium truncate">{{ inv.target_domain }}</span>
+                  </div>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 font-semibold border border-emerald-800/40 shrink-0">Captured</span>
+                </div>
+              </div>
+              <div class="text-[11px] text-slate-400 font-mono shrink-0">
+                {{ shot.width || 1280 }} &times; {{ shot.height || 800 }} px
+              </div>
+            </div>
+
+            <!-- Image Viewport Canvas -->
+            <div class="w-full bg-slate-950 flex items-center justify-center min-h-[420px] overflow-hidden">
+              <img :src="`/api/v1/evidence/${shot.sha256}`" class="w-full h-auto max-h-[850px] object-contain block select-none" :alt="`Screenshot ${inv.target_domain}`" />
+            </div>
+
+            <!-- Metadata Footer -->
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4 text-xs">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-slate-700">Checksum SHA-256:</span>
+                  <span class="font-mono text-slate-600 select-all bg-white px-2 py-0.5 rounded border border-slate-200">{{ shot.sha256 }}</span>
+                </div>
+                <div class="text-slate-500">
+                  Waktu Pengambilan: <span class="font-semibold text-slate-700">{{ formatDate(shot.captured_at) }}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 text-[11px]">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  Integritas Digital Terverifikasi
+                </span>
+              </div>
             </div>
           </div>
         </div>

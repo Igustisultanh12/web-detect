@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Contracts\ScreenshotProviderInterface;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Evidence;
+use App\Models\Screenshot;
 use App\Services\Evidence\EvidenceManagerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class EvidenceController extends Controller
 {
@@ -96,7 +100,7 @@ class EvidenceController extends Controller
     }
 
     /**
-     * Serve raw evidence / screenshot visual payload for browser iframe previews.
+     * Serve raw evidence / screenshot visual payload for browser previews.
      */
     public function renderRaw(Request $request, $identifier)
     {
@@ -105,15 +109,43 @@ class EvidenceController extends Controller
         }
 
         // 1. Look for Screenshot by sha256 or uuid
-        $screenshot = \App\Models\Screenshot::where('sha256', $identifier)
+        $screenshot = Screenshot::with('investigation')
+            ->where('sha256', $identifier)
             ->orWhere('uuid', $identifier)
             ->first();
 
         if ($screenshot) {
-            $storagePath = storage_path('app/' . $screenshot->file_path);
-            if (file_exists($storagePath)) {
-                $mime = str_ends_with($screenshot->file_path, '.svg') ? 'image/svg+xml' : 'image/png';
-                return response()->file($storagePath, ['Content-Type' => $mime]);
+            $realPath = $this->resolveStorageFilePath($screenshot->file_path);
+
+            // If file does not exist on disk, attempt on-demand capture if investigation exists
+            if (!$realPath && $screenshot->investigation) {
+                try {
+                    $provider = app(ScreenshotProviderInterface::class);
+                    $captured = $provider->capture(
+                        $screenshot->investigation->target_url,
+                        $screenshot->investigation->investigation_code
+                    );
+
+                    $screenshot->update([
+                        'file_path' => $captured['file_path'],
+                        'sha256' => $captured['sha256'],
+                        'file_size' => $captured['file_size'],
+                        'width' => $captured['width'],
+                        'height' => $captured['height'],
+                    ]);
+
+                    $realPath = $this->resolveStorageFilePath($captured['file_path']);
+                } catch (\Throwable $e) {
+                    Log::warning("On-demand screenshot capture failed: {$e->getMessage()}");
+                }
+            }
+
+            if ($realPath && file_exists($realPath)) {
+                $mime = $this->detectMimeType($realPath);
+                return response()->file($realPath, [
+                    'Content-Type' => $mime,
+                    'Cache-Control' => 'public, max-age=86400',
+                ]);
             }
         }
 
@@ -124,13 +156,16 @@ class EvidenceController extends Controller
             ->first();
 
         if ($evidence) {
-            if ($evidence->type === 'Screenshot') {
+            if (in_array(strtoupper($evidence->type), ['SCREENSHOT', 'IMAGE', 'VISUAL'])) {
                 $parsed = is_array($evidence->parsed_data) ? $evidence->parsed_data : json_decode($evidence->raw_data, true);
                 if (!empty($parsed['file_path'])) {
-                    $storagePath = storage_path('app/' . $parsed['file_path']);
-                    if (file_exists($storagePath)) {
-                        $mime = str_ends_with($parsed['file_path'], '.svg') ? 'image/svg+xml' : 'image/png';
-                        return response()->file($storagePath, ['Content-Type' => $mime]);
+                    $realPath = $this->resolveStorageFilePath($parsed['file_path']);
+                    if ($realPath && file_exists($realPath)) {
+                        $mime = $this->detectMimeType($realPath);
+                        return response()->file($realPath, [
+                            'Content-Type' => $mime,
+                            'Cache-Control' => 'public, max-age=86400',
+                        ]);
                     }
                 }
             }
@@ -142,22 +177,96 @@ class EvidenceController extends Controller
         $safeId = htmlspecialchars($identifier, ENT_QUOTES, 'UTF-8');
         $fallbackSvg = <<<SVG
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800">
-  <rect width="1280" height="800" fill="#0F172A" />
-  <rect x="0" y="0" width="1280" height="42" fill="#1E293B" />
+  <defs>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="800" fill="#020617" />
+  <rect x="0" y="0" width="1280" height="42" fill="url(#headerGrad)" />
   <circle cx="24" cy="21" r="6" fill="#EF4444" />
   <circle cx="44" cy="21" r="6" fill="#F59E0B" />
   <circle cx="64" cy="21" r="6" fill="#10B981" />
-  <text x="640" y="390" fill="#94A3B8" font-family="sans-serif" font-size="22" font-weight="bold" text-anchor="middle">
-    Bukti Visual Forensik Digital
+  <text x="640" y="27" fill="#94A3B8" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" font-weight="600" text-anchor="middle">
+    WebDetect Digital Evidence Visualizer
   </text>
-  <text x="640" y="430" fill="#64748B" font-family="monospace" font-size="14" text-anchor="middle">
-    Hash SHA-256: {$safeId}
-  </text>
-  <text x="640" y="470" fill="#3B82F6" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle">
-    WebGuard Isolated Browser Capture
-  </text>
+  <g transform="translate(340, 260)">
+    <rect width="600" height="280" rx="16" fill="#0F172A" stroke="#334155" stroke-width="1.5" />
+    <circle cx="300" cy="80" r="32" fill="#1E293B" />
+    <path d="M290 80 L310 80 M300 70 L300 90" stroke="#60A5FA" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="300" y="145" fill="#F8FAFC" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="18" font-weight="bold" text-anchor="middle">
+      Dokumentasi Visual Forensik Digital
+    </text>
+    <text x="300" y="180" fill="#94A3B8" font-family="monospace" font-size="12" text-anchor="middle">
+      Identifier / SHA-256: {$safeId}
+    </text>
+    <text x="300" y="225" fill="#3B82F6" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="middle">
+      &bull; WebDetect Isolated Evidence Engine &bull;
+    </text>
+  </g>
 </svg>
 SVG;
         return response($fallbackSvg, 200, ['Content-Type' => 'image/svg+xml']);
+    }
+
+    /**
+     * Resolves storage path across local disk and multiple directory configurations.
+     */
+    protected function resolveStorageFilePath(string $filePath): ?string
+    {
+        $clean = ltrim(str_replace('private/', '', $filePath), '/');
+        $basename = basename($filePath);
+
+        // 1. Check Laravel Storage local disk
+        $disk = Storage::disk('local');
+        $diskCandidates = [
+            $filePath,
+            $clean,
+            'private/' . $clean,
+            'screenshots/' . $basename,
+            'private/screenshots/' . $basename,
+        ];
+
+        foreach ($diskCandidates as $candidate) {
+            if ($disk->exists($candidate)) {
+                return $disk->path($candidate);
+            }
+        }
+
+        // 2. Check direct filesystem locations
+        $fsCandidates = [
+            storage_path('app/' . $filePath),
+            storage_path('app/private/' . $filePath),
+            storage_path('app/' . $clean),
+            storage_path('app/private/' . $clean),
+            storage_path('app/private/screenshots/' . $basename),
+            storage_path('app/screenshots/' . $basename),
+            storage_path('app/private/private/screenshots/' . $basename),
+        ];
+
+        foreach ($fsCandidates as $path) {
+            if (file_exists($path) && is_file($path)) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolves correct MIME type from file extension.
+     */
+    protected function detectMimeType(string $path): string
+    {
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        return match ($ext) {
+            'png' => 'image/png',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'webp' => 'image/webp',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            default => mime_content_type($path) ?: 'application/octet-stream',
+        };
     }
 }
